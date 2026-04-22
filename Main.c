@@ -11,19 +11,18 @@ int main(int argc, char *argv[]) {
     }
 
     int row_count = 1000;
-    WaveformSample *dataset = malloc(row_count * sizeof(WaveformSample)); // Step 2
+    WaveformSample *dataset = malloc(row_count * sizeof(WaveformSample));
 
     if (dataset == NULL) return 1;
 
     if (load_csv(argv[1], dataset, row_count)) {
         printf("Data loaded successfully from %s\n", argv[1]);
 
-        // Example: Print Phase A voltage of the very first sample to verify
         printf("First Phase A Voltage: %.2f V\n", dataset[0].phase_A_voltage);
     } else {
         printf("Error: Could not open file %s\n", argv[1]);
     }
 
-    free(dataset); // Clean up memory
+    free(dataset);
     return 0;
 }
