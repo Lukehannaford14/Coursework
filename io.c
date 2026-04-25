@@ -3,15 +3,16 @@
 #include "io.h"
 
 int load_csv(const char *filename, WaveformSample *dataset, int row_count) {
-    FILE *file = fopen(filename, "r"); 
+    FILE *file = fopen(filename, "r");
 
     if (file == NULL) {
-        return 0; 
+        return 0;
     }
 
-    char buffer[1024]; 
+    char buffer[1024];
 
     fgets(buffer, sizeof(buffer), file);
+
 
     for (int i = 0; i < row_count; i++) {
         if (fgets(buffer, sizeof(buffer), file)) {
