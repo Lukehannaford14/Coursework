@@ -18,30 +18,49 @@ int main(int argc, char *argv[]) {
     if (load_csv(argv[1], dataset, row_count)) {
         printf("Data loaded successfully from %s\n\n", argv[1]);
 
-        //RMS Calc
+        // PHASE A RESULTS
+        printf("--- PHASE A ---\n");
         double phase_A_rms = calculate_phase_A_rms(dataset, row_count);
-
-        printf("Phase A RMS Voltage: %.2f V\n", phase_A_rms);
-
+        printf("RMS: %.2f V\n", calculate_phase_A_rms(dataset, row_count));
         if (phase_A_rms >= 207.0 && phase_A_rms <= 253.0) {
             printf("Status: COMPLIANT\n");
         } else {
             printf("Status: WARNING - OUT OF TOLERANCE\n");
         }
+        printf("P-P: %.2f V\n", calculate_phase_A_peak_to_peak(dataset, row_count));
+        printf("DC Offset: %.2f V\n", calculate_phase_A_dc_offset(dataset, row_count));
+        printf("Clipped: %d\n", count_phase_A_clipping(dataset, row_count));
 
-        //Peak To Peak
-        double phase_A_p2p = calculate_phase_A_peak_to_peak(dataset, row_count);
-        printf("Phase A Peak-to-Peak Voltage: %.2f V\n", phase_A_p2p);
 
-        //DC Offset
-        double phase_A_dc = calculate_phase_A_dc_offset(dataset, row_count);
-        printf("Phase A DC Offset: %.2f V\n", phase_A_dc);
+        // PHASE B RESULTS
+        printf("\n--- PHASE B ---\n");
+        double phase_B_rms = calculate_phase_B_rms(dataset, row_count);
+        printf("RMS: %.2f V\n", calculate_phase_B_rms(dataset, row_count));
+        if (phase_B_rms >= 207.0 && phase_B_rms <= 253.0) {
+            printf("Status: COMPLIANT\n");
+        } else {
+            printf("Status: WARNING - OUT OF TOLERANCE\n");
+        }
+        printf("P-P: %.2f V\n", calculate_phase_B_peak_to_peak(dataset, row_count));
+        printf("DC Offset: %.2f V\n", calculate_phase_B_dc_offset(dataset, row_count));
+        printf("Clipped: %d\n", count_phase_B_clipping(dataset, row_count));
 
+        // PHASE C RESULTS
+        printf("\n--- PHASE C ---\n");
+        double phase_C_rms = calculate_phase_C_rms(dataset, row_count);
+        printf("RMS: %.2f V\n", calculate_phase_C_rms(dataset, row_count));
+        if (phase_C_rms >= 207.0 && phase_C_rms <= 253.0) {
+            printf("Status: COMPLIANT\n");
+        } else {
+            printf("Status: WARNING - OUT OF TOLERANCE\n");
+        }
+        printf("P-P: %.2f V\n", calculate_phase_C_peak_to_peak(dataset, row_count));
+        printf("DC Offset: %.2f V\n", calculate_phase_C_dc_offset(dataset, row_count));
+        printf("Clipped: %d\n", count_phase_C_clipping(dataset, row_count));
     }
     else {
         printf("Error: Could not open file %s\n", argv[1]);
     }
-
     free(dataset);
     return 0;
 }
