@@ -1,0 +1,166 @@
+<html>
+<head>
+<title>waveform.c</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #bbb529;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #808080;}
+.s4 { color: #cc7832;}
+.s5 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+waveform.c</font>
+</center></td></tr></table>
+<pre><span class="s0">#include </span><span class="s2">&quot;waveform.h&quot;</span>
+<span class="s0">#include </span><span class="s2">&lt;math.h&gt;</span>
+
+<span class="s3">// Phase A   ------------------------------------------------------</span>
+<span class="s3">//RMS (A)</span>
+<span class="s4">double </span><span class="s1">calculate_phase_A_rms(WaveformSample *data</span><span class="s4">, int </span><span class="s1">num_samples) {</span>
+    <span class="s4">double </span><span class="s1">sum_of_squares = </span><span class="s5">0.0</span><span class="s4">;</span>
+
+    <span class="s4">for </span><span class="s1">(</span><span class="s4">int </span><span class="s1">i = </span><span class="s5">0</span><span class="s4">; </span><span class="s1">i &lt; num_samples</span><span class="s4">; </span><span class="s1">i++) {</span>
+        <span class="s4">double </span><span class="s1">voltage = data[i].phase_A_voltage</span><span class="s4">;</span>
+        <span class="s1">sum_of_squares += (voltage * voltage)</span><span class="s4">;</span>
+    <span class="s1">}</span>
+
+    <span class="s4">double </span><span class="s1">mean_of_squares = sum_of_squares / num_samples</span><span class="s4">;</span>
+
+    <span class="s4">return </span><span class="s1">sqrt(mean_of_squares)</span><span class="s4">;</span>
+<span class="s1">}</span>
+<span class="s3">//P2P (A)</span>
+<span class="s4">double </span><span class="s1">calculate_phase_A_peak_to_peak(WaveformSample *dataset</span><span class="s4">, int </span><span class="s1">row_count) {</span>
+    <span class="s4">double </span><span class="s1">max_val = dataset[</span><span class="s5">0</span><span class="s1">].phase_A_voltage</span><span class="s4">;</span>
+    <span class="s4">double </span><span class="s1">min_val = dataset[</span><span class="s5">0</span><span class="s1">].phase_A_voltage</span><span class="s4">;</span>
+
+    <span class="s4">for </span><span class="s1">(</span><span class="s4">int </span><span class="s1">i = </span><span class="s5">1</span><span class="s4">; </span><span class="s1">i &lt; row_count</span><span class="s4">; </span><span class="s1">i++) {</span>
+        <span class="s4">double </span><span class="s1">current_voltage = dataset[i].phase_A_voltage</span><span class="s4">;</span>
+
+        <span class="s4">if </span><span class="s1">(current_voltage &gt; max_val) {max_val = current_voltage</span><span class="s4">;</span><span class="s1">}</span>
+        <span class="s4">if </span><span class="s1">(current_voltage &lt; min_val) {min_val = current_voltage</span><span class="s4">;</span><span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s4">return </span><span class="s1">max_val - min_val</span><span class="s4">;</span>
+<span class="s1">}</span>
+<span class="s3">//DC Offset (A)</span>
+<span class="s4">double </span><span class="s1">calculate_phase_A_dc_offset(WaveformSample *dataset</span><span class="s4">, int </span><span class="s1">row_count) {</span>
+    <span class="s4">double </span><span class="s1">total_sum = </span><span class="s5">0.0</span><span class="s4">;</span>
+
+    <span class="s4">for </span><span class="s1">(</span><span class="s4">int </span><span class="s1">i = </span><span class="s5">0</span><span class="s4">; </span><span class="s1">i &lt; row_count</span><span class="s4">; </span><span class="s1">i++) {</span>
+        <span class="s1">total_sum += dataset[i].phase_A_voltage</span><span class="s4">;</span>
+    <span class="s1">}</span>
+
+    <span class="s4">double </span><span class="s1">dc_offset = total_sum / row_count</span><span class="s4">;</span>
+    <span class="s4">return </span><span class="s1">dc_offset</span><span class="s4">;</span>
+<span class="s1">}</span>
+<span class="s3">//Clipping (A)</span>
+<span class="s4">int </span><span class="s1">count_phase_A_clipping(WaveformSample *dataset</span><span class="s4">, int </span><span class="s1">row_count) {</span>
+    <span class="s4">int </span><span class="s1">clip_count = </span><span class="s5">0</span><span class="s4">;</span>
+
+    <span class="s4">for </span><span class="s1">(</span><span class="s4">int </span><span class="s1">i = </span><span class="s5">0</span><span class="s4">; </span><span class="s1">i &lt; row_count</span><span class="s4">; </span><span class="s1">i++) {</span>
+        <span class="s4">double </span><span class="s1">absolute_voltage = fabs(dataset[i].phase_A_voltage)</span><span class="s4">;</span>
+
+        <span class="s4">if </span><span class="s1">(absolute_voltage &gt;= </span><span class="s5">324.9</span><span class="s1">) {</span>
+            <span class="s1">clip_count++</span><span class="s4">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s4">return </span><span class="s1">clip_count</span><span class="s4">;</span>
+<span class="s1">}</span>
+<span class="s3">// Phase B   ------------------------------------------------------</span>
+<span class="s3">//RMS (B)</span>
+<span class="s4">double </span><span class="s1">calculate_phase_B_rms(WaveformSample *dataset</span><span class="s4">, int </span><span class="s1">row_count) {</span>
+    <span class="s4">double </span><span class="s1">sum_sq = </span><span class="s5">0.0</span><span class="s4">;</span>
+    <span class="s4">for </span><span class="s1">(</span><span class="s4">int </span><span class="s1">i = </span><span class="s5">0</span><span class="s4">; </span><span class="s1">i &lt; row_count</span><span class="s4">; </span><span class="s1">i++) {</span>
+        <span class="s4">double </span><span class="s1">v = dataset[i].phase_B_voltage</span><span class="s4">;</span>
+        <span class="s1">sum_sq += (v * v)</span><span class="s4">;</span>
+    <span class="s1">}</span>
+    <span class="s4">return </span><span class="s1">sqrt(sum_sq / row_count)</span><span class="s4">;</span>
+<span class="s1">}</span>
+<span class="s3">//P2P (B)</span>
+<span class="s4">double </span><span class="s1">calculate_phase_B_peak_to_peak(WaveformSample *dataset</span><span class="s4">, int </span><span class="s1">row_count) {</span>
+    <span class="s4">double </span><span class="s1">max_val = dataset[</span><span class="s5">0</span><span class="s1">].phase_B_voltage</span><span class="s4">;</span>
+    <span class="s4">double </span><span class="s1">min_val = dataset[</span><span class="s5">0</span><span class="s1">].phase_B_voltage</span><span class="s4">;</span>
+    <span class="s4">for </span><span class="s1">(</span><span class="s4">int </span><span class="s1">i = </span><span class="s5">1</span><span class="s4">; </span><span class="s1">i &lt; row_count</span><span class="s4">; </span><span class="s1">i++) {</span>
+        <span class="s4">if </span><span class="s1">(dataset[i].phase_B_voltage &gt; max_val) max_val = dataset[i].phase_B_voltage</span><span class="s4">;</span>
+        <span class="s4">if </span><span class="s1">(dataset[i].phase_B_voltage &lt; min_val) min_val = dataset[i].phase_B_voltage</span><span class="s4">;</span>
+    <span class="s1">}</span>
+    <span class="s4">return </span><span class="s1">max_val - min_val</span><span class="s4">;</span>
+<span class="s1">}</span>
+<span class="s3">//DC Offset (B)</span>
+<span class="s4">double </span><span class="s1">calculate_phase_B_dc_offset(WaveformSample *dataset</span><span class="s4">, int </span><span class="s1">row_count) {</span>
+    <span class="s4">double </span><span class="s1">total_sum = </span><span class="s5">0.0</span><span class="s4">;</span>
+
+    <span class="s4">for </span><span class="s1">(</span><span class="s4">int </span><span class="s1">i = </span><span class="s5">0</span><span class="s4">; </span><span class="s1">i &lt; row_count</span><span class="s4">; </span><span class="s1">i++) {</span>
+        <span class="s1">total_sum += dataset[i].phase_B_voltage</span><span class="s4">;</span>
+    <span class="s1">}</span>
+
+    <span class="s4">double </span><span class="s1">dc_offset = total_sum / row_count</span><span class="s4">;</span>
+
+    <span class="s4">return </span><span class="s1">dc_offset</span><span class="s4">;</span>
+<span class="s1">}</span>
+<span class="s3">//Clipping (B)</span>
+<span class="s4">int </span><span class="s1">count_phase_B_clipping(WaveformSample *dataset</span><span class="s4">, int </span><span class="s1">row_count) {</span>
+    <span class="s4">int </span><span class="s1">clip_count = </span><span class="s5">0</span><span class="s4">;</span>
+
+    <span class="s4">for </span><span class="s1">(</span><span class="s4">int </span><span class="s1">i = </span><span class="s5">0</span><span class="s4">; </span><span class="s1">i &lt; row_count</span><span class="s4">; </span><span class="s1">i++) {</span>
+        <span class="s4">double </span><span class="s1">absolute_voltage = fabs(dataset[i].phase_B_voltage)</span><span class="s4">;</span>
+
+        <span class="s4">if </span><span class="s1">(absolute_voltage &gt;= </span><span class="s5">324.9</span><span class="s1">) {</span>
+            <span class="s1">clip_count++</span><span class="s4">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s4">return </span><span class="s1">clip_count</span><span class="s4">;</span>
+<span class="s1">}</span>
+
+<span class="s3">// Phase C   ------------------------------------------------------</span>
+<span class="s3">//RMS (C)</span>
+<span class="s4">double </span><span class="s1">calculate_phase_C_rms(WaveformSample *dataset</span><span class="s4">, int </span><span class="s1">row_count) {</span>
+    <span class="s4">double </span><span class="s1">sum_sq = </span><span class="s5">0.0</span><span class="s4">;</span>
+    <span class="s4">for </span><span class="s1">(</span><span class="s4">int </span><span class="s1">i = </span><span class="s5">0</span><span class="s4">; </span><span class="s1">i &lt; row_count</span><span class="s4">; </span><span class="s1">i++) {</span>
+        <span class="s4">double </span><span class="s1">v = dataset[i].phase_C_voltage</span><span class="s4">;</span>
+        <span class="s1">sum_sq += (v * v)</span><span class="s4">;</span>
+    <span class="s1">}</span>
+    <span class="s4">return </span><span class="s1">sqrt(sum_sq / row_count)</span><span class="s4">;</span>
+<span class="s1">}</span>
+<span class="s3">//P2P (C)</span>
+<span class="s4">double </span><span class="s1">calculate_phase_C_peak_to_peak(WaveformSample *dataset</span><span class="s4">, int </span><span class="s1">row_count) {</span>
+    <span class="s4">double </span><span class="s1">max_val = dataset[</span><span class="s5">0</span><span class="s1">].phase_C_voltage</span><span class="s4">;</span>
+    <span class="s4">double </span><span class="s1">min_val = dataset[</span><span class="s5">0</span><span class="s1">].phase_C_voltage</span><span class="s4">;</span>
+    <span class="s4">for </span><span class="s1">(</span><span class="s4">int </span><span class="s1">i = </span><span class="s5">1</span><span class="s4">; </span><span class="s1">i &lt; row_count</span><span class="s4">; </span><span class="s1">i++) {</span>
+        <span class="s4">if </span><span class="s1">(dataset[i].phase_C_voltage &gt; max_val) max_val = dataset[i].phase_C_voltage</span><span class="s4">;</span>
+        <span class="s4">if </span><span class="s1">(dataset[i].phase_C_voltage &lt; min_val) min_val = dataset[i].phase_C_voltage</span><span class="s4">;</span>
+    <span class="s1">}</span>
+    <span class="s4">return </span><span class="s1">max_val - min_val</span><span class="s4">;</span>
+<span class="s1">}</span>
+<span class="s3">//DC Offset (C)</span>
+<span class="s4">double </span><span class="s1">calculate_phase_C_dc_offset(WaveformSample *dataset</span><span class="s4">, int </span><span class="s1">row_count) {</span>
+    <span class="s4">double </span><span class="s1">total_sum = </span><span class="s5">0.0</span><span class="s4">;</span>
+
+    <span class="s4">for </span><span class="s1">(</span><span class="s4">int </span><span class="s1">i = </span><span class="s5">0</span><span class="s4">; </span><span class="s1">i &lt; row_count</span><span class="s4">; </span><span class="s1">i++) {</span>
+        <span class="s1">total_sum += dataset[i].phase_C_voltage</span><span class="s4">;</span>
+    <span class="s1">}</span>
+
+    <span class="s4">double </span><span class="s1">dc_offset = total_sum / row_count</span><span class="s4">;</span>
+
+    <span class="s4">return </span><span class="s1">dc_offset</span><span class="s4">;</span>
+<span class="s1">}</span>
+<span class="s3">//Clipping (C)</span>
+<span class="s4">int </span><span class="s1">count_phase_C_clipping(WaveformSample *dataset</span><span class="s4">, int </span><span class="s1">row_count) {</span>
+    <span class="s4">int </span><span class="s1">clip_count = </span><span class="s5">0</span><span class="s4">;</span>
+
+    <span class="s4">for </span><span class="s1">(</span><span class="s4">int </span><span class="s1">i = </span><span class="s5">0</span><span class="s4">; </span><span class="s1">i &lt; row_count</span><span class="s4">; </span><span class="s1">i++) {</span>
+        <span class="s4">double </span><span class="s1">absolute_voltage = fabs(dataset[i].phase_C_voltage)</span><span class="s4">;</span>
+
+        <span class="s4">if </span><span class="s1">(absolute_voltage &gt;= </span><span class="s5">324.9</span><span class="s1">) {</span>
+            <span class="s1">clip_count++</span><span class="s4">;</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+    <span class="s4">return </span><span class="s1">clip_count</span><span class="s4">;</span>
+<span class="s1">}</span></pre>
+</body>
+</html>
